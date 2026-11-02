@@ -45,4 +45,4 @@ NHANES public-use data originate from CDC/NCHS; they are not relicensed as MIT s
 
 ## Research status
 
-Author: Qiyong Yang. Research draft, not yet peer reviewed or posted as a preprint. AI assistance was used in code preparation, figure production, translation and manuscript editing; the author remains responsible for reviewing the work.
+Author: Qiyong Yang. Research draft, not yet peer reviewed or posted as a preprint. AI assistance was used in code preparation, figure production, translation checking and manuscript editing; the author remains responsible for the original writing and review of the work.
