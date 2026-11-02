@@ -1,9 +1,7 @@
-data/
-results/
-figures/
-*.docx
-*.pdf
-.Rlibrary/
 .Rhistory
 .RData
 .Rproj.user/
+.Rlibrary/
+*.rds
+data/interim/
+data/final/

@@ -1,0 +1,6 @@
+PASS: raw XPT IDs unique; raw files unchanged; cleaning and complete-record criteria verified.
+PASS: 5019 complete records, 11 columns, CSV and XPT round-trip equal.
+PASS: all models use identical records, design degrees of freedom 15.
+No imputation, no machine learning, no train/test split; age forms are exploratory checks.
+survey version: 4.5
+haven version: 2.5.5

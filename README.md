@@ -1,21 +1,48 @@
 # NHANES Social Data Science and Public Health
 
-Reproducible R code examining income, education and systolic blood pressure in NHANES August 2021–August 2023. The analysis links four components, constructs a common complete-record adult sample, and compares demographic, BMI and education adjustment using survey-weighted linear regression.
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
-## Run the analysis
+## Income, education and systolic blood pressure
 
-Install `haven` and `survey` in R. Obtain the public NHANES components `DEMO_L.xpt`, `BPXO_L.xpt`, `BMX_L.xpt` and `BPQ_L.xpt` from the [CDC data documentation](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DEMO_L.htm). Place these four original files in `data/raw/` below the repository root. Data files and manuscripts are not bundled in this code-only release.
+An R-based study of social determinants of health using NHANES August 2021–August 2023. Four components containing 11,933 participants are linked to obtain a common complete-record sample of 5,019 adults. Sequential survey-weighted regressions compare demographic adjustment, additional BMI adjustment, and additional education adjustment.
 
-With the repository root as the R working directory, run:
+| Model | PIR coefficient (mmHg) | 95% CI |
+|---|---:|---|
+| M1 Demographics | -0.682 | -1.193 to -0.171 |
+| M2 + BMI | -0.656 | -1.193 to -0.119 |
+| M3 + Education | -0.201 | -1.014 to 0.612 |
+
+The income gradient attenuates after education adjustment. All models use the same participants and incorporate examination weights, strata and PSUs.
+
+![Analytical framework](figures/figure0_framework.png)
+
+## Files and data
+
+- [`data/raw/`](data/raw/): four original public-use NHANES XPT files, unchanged from the study inputs.
+- [`data/processed/nhanes_complete_5019.csv`](data/processed/nhanes_complete_5019.csv): the complete analytical dataset, 5,019 records and 11 columns, with no missing cells. An equivalent XPT is included.
+- [`data/README.md`](data/README.md): provenance, variable definitions, coding and data-use information.
+- [`R/run_analysis.R`](R/run_analysis.R): linkage, cleaning, sample selection, estimation and diagnostics.
+- [`R/render_figures.R`](R/render_figures.R): seven English figures.
+- [`results/`](results/): numerical results, sample flow and verification outputs.
+- [`figures/`](figures/): framework, sample filtering, group means, coefficients, adjusted curves, residuals and age specifications.
+- [`manuscript/`](manuscript/): English research draft with editable Word equations.
+
+## Reproduce
+
+Clone or download this repository. In R, install `haven` and `survey` if needed, set the working directory to the repository root, and run:
 
 ```r
 source("R/run_analysis.R", encoding = "UTF-8")
 ```
 
-The pipeline performs participant-level linkage, measurement checks, complete-record selection, weighted descriptive statistics, three sequential linear models, residual and collinearity diagnostics, age-form comparisons, 45 leave-one-stratum refits, and seven English figures. Model uncertainty incorporates examination weights, strata and primary sampling units. The scripts create `data/final/`, `data/interim/`, `results/` and `figures/` locally. These generated files are ignored by Git.
+The four input XPT files are already included; no archived local workspace is required. The pipeline generates results and figures, with final CSV/XPT outputs under `data/final/`. The pre-generated analytical dataset is provided under `data/processed/`. Regenerated intermediate RDS files are ignored by Git. The standalone pipeline was tested against the saved main-model estimates.
 
-`R/run_analysis.R` reconstructs the analysis from public XPT inputs; `R/render_figures.R` renders the framework, filtering flow and scientific figures from the generated results. The pipeline was tested locally against the study's saved model estimates before this release. It does not require the author's archived workspace.
+## License and attribution
 
-## Research and authorship
+Original R code and project documentation are licensed under the [MIT License](LICENSE). Please retain the copyright and permission notice when reusing the software. The research manuscript and scientific figures retain the author's copyright unless separately licensed.
 
-Author: Qiyong Yang. This project applies statistical inference to social determinants of health. The research manuscript is in preparation. AI assistance was used in code preparation and figure production; the author remains responsible for reviewing the analysis. A reuse license has not yet been selected.
+NHANES public-use data originate from CDC/NCHS; they are not relicensed as MIT software. See the [official NHANES citation guidance](https://wwwn.cdc.gov/nchs/NHANES/NhanesCitation.aspx) and the [data provenance notes](data/README.md). The processed values derive from those public-use files; cite CDC/NCHS and describe any additional processing when reusing them.
+
+## Research status
+
+Author: Qiyong Yang. Research draft, not yet peer reviewed or posted as a preprint. AI assistance was used in code preparation, figure production, translation and manuscript editing; the author remains responsible for reviewing the work.
