@@ -1,0 +1,52 @@
+# R graphics for expanded manuscript; existing model estimates are read unchanged.
+Sys.setlocale('LC_CTYPE','English_United States.utf8')
+root <- getwd()
+library(survey)
+fig <- file.path(root,'figures')
+models <- readRDS(file.path(root,'results/models.rds'))
+design <- readRDS(file.path(root,'data/interim/design_full_mec.rds'))
+ds <- subset(design,cc)
+rd <- function(n) read.csv(file.path(root,'results',n),check.names=FALSE,fileEncoding='UTF-8')
+flow<-rd('sample_flow.csv');groupstats<-rd('income_group_descriptive.csv')
+all<-rd('model_coefficients.csv');ageout<-rd('age_form_checks.csv');curves<-rd('adjusted_curves.csv')
+  blue<-'#264F6E';orange<-'#BF713F';teal<-'#287D83'
+  device<-function(name,width=2100,height=1400)png(file.path(fig,name),width=width,height=height,res=240,type='cairo',family='Arial',pointsize=12)
+  device('figure1_flow.png',2200,1650);par(mar=c(.2,.2,.2,.2));plot.new();plot.window(xlim=c(0,10),ylim=c(0,10))
+  labels<-c('Merged participants','Valid MEC and design data','Adults aged 20 or older','At least two valid SBP readings','Known pregnancy excluded','Observed PIR','Observed BMI','Complete model variables')
+  ys<-seq(9.3,.7,length.out=nrow(flow));theta<-seq(0,2*pi,length.out=160)
+  for(i in seq_along(ys)) {half<-2.1+2.3*flow$n[i]/max(flow$n);polygon(5+half*cos(theta),ys[i]+.36*sin(theta),col=if(i==8)'#DDEDF0' else '#F1F5F7',border='#7493A5',lwd=1.5);text(5,ys[i],paste0(labels[i],'  n = ',format(flow$n[i],big.mark=',')),cex=.88);if(i<length(ys))arrows(5,ys[i]-.39,5,ys[i+1]+.4,length=.07,col=blue)}
+  dev.off()
+  device('figure2_income_groups.png',2100,1250);par(mar=c(5,5,2,1))
+  plot(1:5,groupstats$sbp,pch=19,col=blue,cex=1.5,xaxt='n',xlim=c(.5,5.5),ylim=range(groupstats$lower,groupstats$upper)+c(-.6,.6),xlab='Income-to-poverty ratio group',ylab='Unadjusted mean systolic blood pressure (mmHg)')
+  abline(h=axTicks(2),col='grey91',lty=3);axis(1,at=1:5,labels=groupstats$group);arrows(1:5,groupstats$lower,1:5,groupstats$upper,angle=90,code=3,length=.06,col=blue,lwd=2)
+  text(1:5,groupstats$sbp,sprintf('%.2f',groupstats$sbp),pos=4,cex=.85,col=blue);dev.off()
+  device('figure3_income_coefficients.png',2100,1250);par(mar=c(5,9,2,2));s<-all[all$term=='pir',];lim<-range(c(s$lower,s$upper,0));pad<-diff(lim)*.12
+  plot(s$estimate,3:1,xlim=lim+c(-pad,pad),ylim=c(.5,3.5),yaxt='n',ylab='',xlab='SBP difference per 1-unit higher PIR (mmHg)',pch=19,col=c(blue,teal,orange),cex=1.4)
+  abline(v=axTicks(1),col='grey91',lty=3);axis(2,at=3:1,labels=c('M1 Demographics','M2 + BMI','M3 + Education'),las=1,cex.axis=.85);abline(v=0,lty=2,col='gray60');segments(s$lower,3:1,s$upper,3:1,lwd=2,col=c(blue,teal,orange));dev.off()
+  device('figure4_adjusted_curves.png',2100,1300);par(mar=c(5,5,2,1));plot(NA,xlim=c(0,5),ylim=range(curves$lower,curves$upper),xlab='Income-to-poverty ratio (PIR)',ylab='Adjusted mean SBP (mmHg)')
+  for(j in 1:3){z<-curves[curves$model==names(models)[j],];col<-c(blue,teal,orange)[j];polygon(c(z$pir,rev(z$pir)),c(z$lower,rev(z$upper)),col=adjustcolor(col,.10),border=NA);lines(z$pir,z$sbp,col=col,lwd=2)}
+  legend('topright',names(models),col=c(blue,teal,orange),lwd=2,bty='n');dev.off()
+  device('figure5_residuals.png',2400,1600);par(mfrow=c(2,3),mar=c(4,4,2,1));for(n in names(models)){f<-models[[n]];plot(fitted(f),residuals(f,type='response'),pch=16,cex=.28,col=adjustcolor(blue,.15),xlab='Fitted SBP',ylab='Residual',main=n);abline(h=0,col=orange,lty=2)}
+  for(n in names(models)){e<-residuals(models[[n]],type='response');qqnorm(e,pch=16,cex=.3,col=adjustcolor(blue,.3),main=paste(n,'Residual Q-Q plot'));qqline(e,col=orange)};dev.off()
+  device('figure6_age_checks.png',2200,1350);par(mfrow=c(1,2),mar=c(5,6,2,1));for(n in c('M1','M2')){s<-ageout[ageout$model==n&ageout$term=='pir',];lim<-range(c(s$lower,s$upper,0));pad<-diff(lim)*.1
+    plot(s$estimate,3:1,xlim=lim+c(-pad,pad),ylim=c(.5,3.5),yaxt='n',ylab='',xlab='PIR coefficient (mmHg)',main=n,pch=19,col=blue);axis(2,at=3:1,labels=c('Linear','Quadratic','Spline'),las=1,cex.axis=.8);abline(v=0,lty=2,col='gray60');segments(s$lower,3:1,s$upper,3:1,col=blue,lwd=2)};dev.off()
+
+device('figure0_framework.png',2400,1550)
+par(mar=c(.3,.3,.3,.3));plot.new();plot.window(xlim=c(0,100),ylim=c(0,100))
+box <- function(x1,y1,x2,y2,label,fill='#F1F5F7') {rect(x1,y1,x2,y2,col=fill,border='#7493A5',lwd=1.5);text((x1+x2)/2,(y1+y2)/2,label,cex=.94)}
+arr <- function(x1,y1,x2,y2) arrows(x1,y1,x2,y2,length=.10,col=blue,lwd=1.6)
+box(13,84,87,98,'How does education adjustment change the income-SBP association?','#DDEDF0')
+box(13,64,87,78,'Four components -> Data checks -> Common sample: 5,019 adults')
+arr(50,84,50,78)
+rect(.5,18,99.5,59,lty=2,border='#7493A5',lwd=1.8)
+for (x in c(17,50,83)) arr(50,64,x,57)
+box(2,41,32,57,'M1  Demographic adjustment\nPIR + age + sex + race/ethnicity')
+box(35,41,65,57,'M2  Body composition\nM1 variables + BMI')
+box(68,41,98,57,'M3  Educational resources\nM2 variables + education')
+for (x in c(17,50,83)) arr(x,41,x,34)
+box(2,20,32,34,'Survey-based inference\nWeights / strata / PSUs')
+box(35,20,65,34,'Diagnostics and specifications\nResiduals / GVIF / age forms')
+box(68,20,98,34,'Comparison of results\nCoefficients / CIs / stratum influence')
+for (x in c(17,50,83)) arr(x,20,50,14)
+box(13,0,87,14,'Interpret income gradients, educational resources and health differences','#DDEDF0')
+dev.off()
